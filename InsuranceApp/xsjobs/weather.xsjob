@@ -1,0 +1,10 @@
+{
+	"description": "Job for Pushing Weather data into DB",
+	"action": "InsuranceApp.service:GetWeather.xsjs::execute",
+	"schedules": [ { 
+	   "description": "Will run every 5 seconds between 1-30 seconds of every minute", 
+	   "xscron": "* * * * * * 1:30/5"
+	    
+	 }] 
+	   
+}

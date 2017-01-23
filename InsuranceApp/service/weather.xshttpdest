@@ -1,0 +1,12 @@
+description = "Weather API HTTP Destination";
+host = "p1754607495trial-trial.apim1.hanatrial.ondemand.com";
+port = 443;
+pathPrefix = "/p1754607495trial/Weather";
+proxyType = http;
+proxyHost = "proxy-trial";
+proxyPort = 8080;
+authType = none;
+useSSL = true;
+timeout = 30000;
+sslHostCheck = true;
+sslAuth = client;

@@ -1,0 +1,9 @@
+service {
+"_SYS_BIC"."InsuranceApp.views/driverscore" as "DRIVERSCORE" key generate local "ID";
+"_SYS_BIC"."InsuranceApp.views/overallscore" as "OVERALLSCORE" key generate local "IDO";
+
+"SYSTEM"."T_IOT_TRIP" as "TRIP" key generate local "ID2";
+
+"SYSTEM"."T_IOT_ANALYSIS" as "ANALYSIS" key generate local "ID2";
+
+}

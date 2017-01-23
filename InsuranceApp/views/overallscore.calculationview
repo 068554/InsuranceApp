@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Calculation:scenario xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:Calculation="http://www.sap.com/ndb/BiModelCalculation.ecore" id="overallscore" applyPrivilegeType="NONE" dataCategory="DIMENSION" dimensionType="STANDARD" schemaVersion="2.3" defaultClient="crossClient" visibility="internal" calculationScenarioType="SCRIPT_BASED" scriptParametersCaseSensitive="true" enforceSqlExecution="false" runWithInvokerPrivileges="true">
+<descriptions defaultDescription="overallscore"/>
+<localVariables/>
+<variableMappings/>
+<dataSources/>
+<calculationViews>
+  <calculationView xsi:type="Calculation:SqlScriptView" id="Script_View">
+    <viewAttributes>
+      <viewAttribute id="VEHICLE_ID" datatype="NVARCHAR" length="30"/>
+    
+      <viewAttribute id="VEHICLE_NAME" datatype="NVARCHAR" length="30"/>
+      <viewAttribute id="VEHICLE_OWNER_ID" datatype="NVARCHAR" length="30"/>
+      <viewAttribute id="VEHICLE_OWNER_NAME" datatype="NVARCHAR" length="30"/>
+      <viewAttribute id="ADRESS1" datatype="NVARCHAR" length="30"/>
+      <viewAttribute id="ADRESS2" datatype="NVARCHAR" length="30"/>
+      <viewAttribute id="CITY" datatype="NVARCHAR" length="30"/>
+      <viewAttribute id="STATE" datatype="NVARCHAR" length="30"/>
+      <viewAttribute id="PINCODE" datatype="NVARCHAR" length="30"/>
+      <viewAttribute id="COUNTRY" datatype="NVARCHAR" length="30"/>
+      <viewAttribute id="DEVICE_ID" datatype="NVARCHAR" length="100"/>
+      <viewAttribute id="ACTUAL_PREMIUM" datatype="NVARCHAR" length="30"/>
+      <viewAttribute id="PAID_PREMIUM" datatype="NVARCHAR" length="30"/>
+      <viewAttribute id="PREMIUM_START_DATE" datatype="TIMESTAMP"/>
+      <viewAttribute id="PREMIUM_END_DATE" datatype="TIMESTAMP"/>
+      <viewAttribute id="VEHICLE_PRICE" datatype="NVARCHAR" length="30"/>
+      <viewAttribute id="VENDOR_NAME" datatype="NVARCHAR" length="30"/>
+      <viewAttribute id="REGISTRATION_YEAR" datatype="NVARCHAR" length="30"/>
+      <viewAttribute id="ENGINE_NO" datatype="NVARCHAR" length="30"/>
+      <viewAttribute id="CHASIS" datatype="NVARCHAR" length="30"/>
+      <viewAttribute id="COLOR" datatype="NVARCHAR" length="30"/>
+      <viewAttribute id="SITTING_CAPACITY" datatype="NVARCHAR" length="30"/>
+      <viewAttribute id="DEPRECIATION_AMOUNT" datatype="NVARCHAR" length="30"/>
+      <viewAttribute id="INSURANCE_TYPE" datatype="NVARCHAR" length="30"/>
+      <viewAttribute id="HARSH_DRIVE" datatype="DECIMAL" length="25" scale="6"/>
+      <viewAttribute id="ALCOHOL_PERC" datatype="DECIMAL" length="25" scale="6"/>
+      <viewAttribute id="NOISE_NEG" datatype="DECIMAL" length="25" scale="6"/>
+      <viewAttribute id="SMOKING_PERC" datatype="DECIMAL" length="25" scale="6"/>
+      <viewAttribute id="WTR_RESISTENCE" datatype="DECIMAL" length="25" scale="6"/>
+      <viewAttribute id="OVERALL_SCORE" datatype="DECIMAL" length="25" scale="6"/>
+    </viewAttributes>
+    <calculatedViewAttributes/>
+    <definition>/********* Begin Procedure Script ************/ 
+BEGIN 
+  VAR_COUNT =select 
+  DEVICE_ID , count(*) AS C1 FROM &quot;_SYS_BIC&quot;.&quot;InsuranceApp.views/driverscore&quot; group by &quot;DEVICE_ID&quot;;
+  
+    VAR_T1 = SELECT 
+	&quot;DEVICE_ID&quot; AS &quot;DEVICE_ID&quot;,
+	SUM(&quot;ACC_NEG&quot;) AS &quot;HARSH_DRIVE&quot;,
+	SUM(&quot;ALCOHOL_PERC&quot;) AS &quot;ALCOHOL_PERC&quot;,
+    SUM(&quot;DRIVER_SCORE&quot;) AS &quot;DRIVER_SCORE&quot;,
+	SUM(&quot;NOISE_NEG&quot;) AS &quot;NOISE_NEG&quot;,
+	SUM(&quot;SMOKING_PERC&quot;) AS &quot;SMOKING_PERC&quot;,
+    SUM(&quot;WTR_RESISTENCE&quot;) AS &quot;WTR_RESISTENCE&quot;
+FROM &quot;_SYS_BIC&quot;.&quot;InsuranceApp.views/driverscore&quot; group by &quot;DEVICE_ID&quot;;
+
+VAR_T2 = select 
+         C.DEVICE_ID AS DEVICE_ID ,
+         C.C1 AS C1,
+         T1.HARSH_DRIVE AS HARSH_DRIVE,
+         T1.ALCOHOL_PERC AS ALCOHOL_PERC,
+         T1.NOISE_NEG AS NOISE_NEG,
+         T1.SMOKING_PERC AS SMOKING_PERC,
+         T1.WTR_RESISTENCE AS WTR_RESISTENCE,
+         T1.DRIVER_SCORE AS OVERALL_SCORE 
+         from :VAR_COUNT AS C inner join :VAR_T1 AS T1 on
+         C.DEVICE_ID = T1.DEVICE_ID;
+         
+VAR_T3 = SELECT DEVICE_ID,
+                 (HARSH_DRIVE/C1) AS HARSH_DRIVE,
+                (ALCOHOL_PERC/C1) AS ALCOHOL_PERC,
+                (NOISE_NEG/C1) AS NOISE_NEG,
+                (SMOKING_PERC/C1) AS SMOKING_PERC,
+                (WTR_RESISTENCE/C1) AS WTR_RESISTENCE,
+                (OVERALL_SCORE/C1) AS OVERALL_SCORE 
+                from :VAR_T2;
+VAR_T4 = SELECT 
+	P.&quot;vehicle_id&quot; AS VEHICLE_ID,
+	P.&quot;vehicle_name&quot; AS VEHICLE_NAME,
+	P.&quot;vehicle_owner_id&quot; AS VEHICLE_OWNER_ID,
+	P.&quot;vehicle_owner_name&quot; AS VEHICLE_OWNER_NAME,
+	P.&quot;adress1&quot; AS ADRESS1,
+	P.&quot;adress2&quot; AS ADRESS2,
+	P.&quot;city&quot; AS CITY,
+	P.&quot;state&quot; AS STATE,
+	P.&quot;pincode&quot; AS PINCODE,
+	P.&quot;country&quot; AS COUNTRY,
+	P.&quot;device_id&quot; AS DEVICE_ID,
+	P.&quot;actual_premium&quot; AS ACTUAL_PREMIUM,
+	P.&quot;paid_premium&quot; AS PAID_PREMIUM,
+	P.&quot;premium_start_date&quot; AS PREMIUM_START_DATE,
+	P.&quot;premium_end_date&quot; AS PREMIUM_END_DATE,
+	P.&quot;vehicle_price&quot; AS VEHICLE_PRICE,
+	P.&quot;vendor_name&quot; AS VENDOR_NAME,
+	P.&quot;registration_year&quot; AS REGISTRATION_YEAR,
+	P.&quot;engine_no&quot; AS ENGINE_NO,
+	P.&quot;chasis&quot; AS CHASIS,
+	P.&quot;color&quot; AS COLOR,
+	P.&quot;sitting_capacity&quot; AS SITTING_CAPACITY,
+	P.&quot;depreciation_amount&quot; AS DEPRECIATION_AMOUNT,
+	P.&quot;insurance_type&quot; AS INSURANCE_TYPE,
+	T3.HARSH_DRIVE AS HARSH_DRIVE,
+	T3.ALCOHOL_PERC AS ALCOHOL_PERC,
+	T3.NOISE_NEG AS NOISE_NEG, 
+	T3.SMOKING_PERC AS SMOKING_PERC,
+	T3.WTR_RESISTENCE AS WTR_RESISTENCE,
+	T3.OVERALL_SCORE AS OVERALL_SCORE
+FROM &quot;INSURANCEAPP&quot;.&quot;InsuranceApp.dataservice::insurancedb.VEHICLEPROFILE&quot; AS P inner join :VAR_T3 AS T3
+on P.&quot;device_id&quot; = T3.DEVICE_ID; 
+    
+         
+   var_out = SELECT
+               VEHICLE_ID,
+               VEHICLE_NAME,
+               VEHICLE_OWNER_ID, 
+               VEHICLE_OWNER_NAME,
+               ADRESS1,
+               ADRESS2,
+               CITY,
+               STATE,
+               PINCODE,
+               COUNTRY,
+               DEVICE_ID,
+               ACTUAL_PREMIUM,
+               PAID_PREMIUM,
+               PREMIUM_START_DATE,
+               PREMIUM_END_DATE,
+               VEHICLE_PRICE,
+               VENDOR_NAME,
+               REGISTRATION_YEAR,
+               ENGINE_NO,
+               CHASIS,
+               COLOR,
+               SITTING_CAPACITY,
+               DEPRECIATION_AMOUNT,
+               INSURANCE_TYPE,
+               HARSH_DRIVE,
+               ALCOHOL_PERC,
+               NOISE_NEG,
+               SMOKING_PERC,
+               WTR_RESISTENCE,
+               OVERALL_SCORE
+               from :VAR_T4; 
+
+END /********* End Procedure Script ************/</definition>
+  </calculationView>
+</calculationViews>
+<logicalModel id="Script_View">
+  <attributes>
+    <attribute id="VEHICLE_NAME" order="2">
+      <keyMapping columnObjectName="Script_View" columnName="VEHICLE_NAME"/>
+    </attribute>
+    <attribute id="VEHICLE_OWNER_ID" order="3">
+      <keyMapping columnObjectName="Script_View" columnName="VEHICLE_OWNER_ID"/>
+    </attribute>
+    <attribute id="VEHICLE_OWNER_NAME" order="4">
+      <keyMapping columnObjectName="Script_View" columnName="VEHICLE_OWNER_NAME"/>
+    </attribute>
+    <attribute id="ADRESS1" order="5">
+      <keyMapping columnObjectName="Script_View" columnName="ADRESS1"/>
+    </attribute>
+    <attribute id="ADRESS2" order="6">
+      <keyMapping columnObjectName="Script_View" columnName="ADRESS2"/>
+    </attribute>
+    <attribute id="CITY" order="7">
+      <keyMapping columnObjectName="Script_View" columnName="CITY"/>
+    </attribute>
+    <attribute id="STATE" order="8">
+      <keyMapping columnObjectName="Script_View" columnName="STATE"/>
+    </attribute>
+    <attribute id="PINCODE" order="9">
+      <keyMapping columnObjectName="Script_View" columnName="PINCODE"/>
+    </attribute>
+    <attribute id="COUNTRY" order="10">
+      <keyMapping columnObjectName="Script_View" columnName="COUNTRY"/>
+    </attribute>
+    <attribute id="DEVICE_ID" order="11">
+      <keyMapping columnObjectName="Script_View" columnName="DEVICE_ID"/>
+    </attribute>
+    <attribute id="ACTUAL_PREMIUM" order="12">
+      <keyMapping columnObjectName="Script_View" columnName="ACTUAL_PREMIUM"/>
+    </attribute>
+    <attribute id="PAID_PREMIUM" order="13">
+      <keyMapping columnObjectName="Script_View" columnName="PAID_PREMIUM"/>
+    </attribute>
+    <attribute id="PREMIUM_START_DATE" order="14">
+      <keyMapping columnObjectName="Script_View" columnName="PREMIUM_START_DATE"/>
+    </attribute>
+    <attribute id="PREMIUM_END_DATE" order="15">
+      <keyMapping columnObjectName="Script_View" columnName="PREMIUM_END_DATE"/>
+    </attribute>
+    <attribute id="VEHICLE_PRICE" order="16">
+      <keyMapping columnObjectName="Script_View" columnName="VEHICLE_PRICE"/>
+    </attribute>
+    <attribute id="VENDOR_NAME" order="17">
+      <keyMapping columnObjectName="Script_View" columnName="VENDOR_NAME"/>
+    </attribute>
+    <attribute id="REGISTRATION_YEAR" order="18">
+      <keyMapping columnObjectName="Script_View" columnName="REGISTRATION_YEAR"/>
+    </attribute>
+    <attribute id="ENGINE_NO" order="19">
+      <keyMapping columnObjectName="Script_View" columnName="ENGINE_NO"/>
+    </attribute>
+    <attribute id="CHASIS" order="20">
+      <keyMapping columnObjectName="Script_View" columnName="CHASIS"/>
+    </attribute>
+    <attribute id="COLOR" order="21">
+      <keyMapping columnObjectName="Script_View" columnName="COLOR"/>
+    </attribute>
+    <attribute id="SITTING_CAPACITY" order="22">
+      <keyMapping columnObjectName="Script_View" columnName="SITTING_CAPACITY"/>
+    </attribute>
+    <attribute id="DEPRECIATION_AMOUNT" order="23">
+      <keyMapping columnObjectName="Script_View" columnName="DEPRECIATION_AMOUNT"/>
+    </attribute>
+    <attribute id="INSURANCE_TYPE" order="24">
+      <keyMapping columnObjectName="Script_View" columnName="INSURANCE_TYPE"/>
+    </attribute>
+    <attribute id="HARSH_DRIVE" order="25">
+      <keyMapping columnObjectName="Script_View" columnName="HARSH_DRIVE"/>
+    </attribute>
+    <attribute id="ALCOHOL_PERC" order="26">
+      <keyMapping columnObjectName="Script_View" columnName="ALCOHOL_PERC"/>
+    </attribute>
+    <attribute id="NOISE_NEG" order="27">
+      <keyMapping columnObjectName="Script_View" columnName="NOISE_NEG"/>
+    </attribute>
+    <attribute id="SMOKING_PERC" order="28">
+      <keyMapping columnObjectName="Script_View" columnName="SMOKING_PERC"/>
+    </attribute>
+    <attribute id="WTR_RESISTENCE" order="29">
+      <keyMapping columnObjectName="Script_View" columnName="WTR_RESISTENCE"/>
+    </attribute>
+    <attribute id="OVERALL_SCORE" order="30">
+      <keyMapping columnObjectName="Script_View" columnName="OVERALL_SCORE"/>
+    </attribute>
+  </attributes>
+  <calculatedAttributes/>
+  <baseMeasures>
+    <measure id="VEHICLE_ID" order="1" aggregationType="count" measureType="simple">
+      <descriptions defaultDescription="COL"/>
+      <measureMapping columnObjectName="Script_View" columnName="VEHICLE_ID"/>
+    </measure>
+  </baseMeasures>
+  <calculatedMeasures/>
+  <restrictedMeasures/>
+</logicalModel>
+<layout>
+  <shapes>
+    <shape expanded="true" modelObjectName="Output" modelObjectNameSpace="MeasureGroup">
+      <upperLeftCorner x="40" y="85"/>
+    </shape>
+  </shapes>
+</layout>
+</Calculation:scenario>

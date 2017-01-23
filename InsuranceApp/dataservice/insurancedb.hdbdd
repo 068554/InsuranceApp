@@ -1,0 +1,61 @@
+namespace InsuranceApp.dataservice;
+@Schema: 'INSURANCEAPP' 
+context insurancedb {
+  @Catalog.tableType: #COLUMN
+   Entity WEATHERDATA{
+   city : String(30);
+   humidity : String(30);
+   pressure : String(30);
+   temp : String(30);
+   temp_max : String(30);
+   temp_min : String(30);
+   conditionA : String(30);
+   conditionB : String(30);
+   lat : String(30);
+   long : String(30);
+   captured_time: UTCTimestamp;
+   };
+   
+   @Catalog.tableType: #COLUMN
+   Entity VEHICLEPROFILE{
+   vehicle_id : String(30);
+   vehicle_name : String(30);
+   vehicle_owner_id : String(30);
+   vehicle_owner_name : String(30);
+   adress1 : String(30);
+   adress2 : String(30);
+   city : String(30);
+   state : String(30);
+   pincode : String(30);
+   country : String(30);
+   key device_id : String(100);
+   actual_premium : String(30);
+   paid_premium : String(30);
+   premium_start_date : UTCTimestamp;
+   premium_end_date : UTCTimestamp;
+   vehicle_price : String(30);
+   vendor_name : String(30);
+   registration_year : String(30);
+   engine_no : String(30);
+   chasis : String(30);
+   color : String(30);
+   sitting_capacity : String(30);
+   depreciation_amount : String(30);
+   insurance_type : String(30);
+   };
+   
+   @Catalog.tableType: #COLUMN
+   Entity WEATHERDATAHISTORY{
+   city : String(30);
+   humidity : String(30);
+   pressure : String(30);
+   temp : String(30);
+   temp_max : String(30);
+   temp_min : String(30);
+   conditionA : String(30);
+   conditionB : String(30);
+   lat : String(30);
+   long : String(30);
+   captured_time: UTCTimestamp;
+   };
+};

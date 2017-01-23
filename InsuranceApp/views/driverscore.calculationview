@@ -1,0 +1,324 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Calculation:scenario xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:Calculation="http://www.sap.com/ndb/BiModelCalculation.ecore" id="driverscore" applyPrivilegeType="NONE" dataCategory="DEFAULT" dimensionType="STANDARD" schemaVersion="2.3" defaultClient="crossClient" visibility="internal" calculationScenarioType="SCRIPT_BASED" scriptParametersCaseSensitive="true" enforceSqlExecution="false" runWithInvokerPrivileges="true">
+<descriptions defaultDescription="driverscore"/>
+<localVariables/>
+<variableMappings/>
+<dataSources/>
+<calculationViews>
+  <calculationView xsi:type="Calculation:SqlScriptView" id="Script_View">
+    <viewAttributes>
+      <viewAttribute id="DEVICE_ID" datatype="NVARCHAR" length="255"/>
+    
+      <viewAttribute id="POSTED_TS" datatype="TIMESTAMP"/>
+      <viewAttribute id="SENSOR_CAPTURE_TS" datatype="TIMESTAMP"/>
+      <viewAttribute id="GYRO" datatype="DECIMAL" length="4" scale="3"/>
+      <viewAttribute id="ACC" datatype="DECIMAL" length="4" scale="3"/>
+      <viewAttribute id="ACC_NEG" datatype="INTEGER"/>
+      <viewAttribute id="LONGITUDE" datatype="NVARCHAR" length="255"/>
+      <viewAttribute id="LATITUDE" datatype="NVARCHAR" length="255"/>
+      <viewAttribute id="ALTITUDE" datatype="NVARCHAR" length="255"/>
+      <viewAttribute id="IOTCLIENT" datatype="NVARCHAR" length="255"/>
+      <viewAttribute id="CITY" datatype="NVARCHAR" length="255"/>
+      <viewAttribute id="WTR_RESISTENCE" datatype="INTEGER"/>
+      <viewAttribute id="SMOKE_NEG" datatype="INTEGER"/>
+      <viewAttribute id="ALCOHOL_NEG" datatype="INTEGER"/>
+      <viewAttribute id="NOISE_NEG" datatype="INTEGER"/>
+      <viewAttribute id="HUM" datatype="DECIMAL" length="4" scale="3"/>
+      <viewAttribute id="PRESSURE" datatype="DECIMAL" length="4" scale="3"/>
+      <viewAttribute id="TEMPERATURE" datatype="DECIMAL" length="4" scale="3"/>
+      <viewAttribute id="TEMP_MAX" datatype="DECIMAL" length="4" scale="3"/>
+      <viewAttribute id="TEMP_MIN" datatype="DECIMAL" length="4" scale="3"/>
+      <viewAttribute id="SMOKING_PERC" datatype="INTEGER"/>
+      <viewAttribute id="ALCOHOL_PERC" datatype="INTEGER"/>
+      <viewAttribute id="COND_A" datatype="NVARCHAR" length="255"/>
+      <viewAttribute id="COND_B" datatype="NVARCHAR" length="255"/>
+      <viewAttribute id="WEATHR_CAPTURED_TIME" datatype="TIMESTAMP"/>
+      <viewAttribute id="DRIVER_SCORE" datatype="INTEGER"/>
+    </viewAttributes>
+    <calculatedViewAttributes/>
+    <definition>/********* Begin Procedure Script ************/ 
+BEGIN 
+   var_weather = SELECT 
+	&quot;city&quot;,
+	&quot;humidity&quot;,
+	&quot;pressure&quot;,
+	&quot;temp&quot;,
+	&quot;temp_max&quot;,
+	&quot;temp_min&quot;,
+	&quot;conditionA&quot;,
+	&quot;conditionB&quot;,
+	&quot;lat&quot;,
+	&quot;long&quot;,
+	&quot;captured_time&quot;
+FROM &quot;INSURANCEAPP&quot;.&quot;InsuranceApp.dataservice::insurancedb.WEATHERDATA&quot;;
+
+   var_iot = SELECT 
+	&quot;G_DEVICE&quot;,
+	&quot;G_CREATED&quot;,
+	&quot;C_TIMESTAMP&quot;,
+	&quot;C_AUDIO&quot;,
+	&quot;C_GYROSCOPEX&quot;,
+	&quot;C_GYROSCOPEY&quot;,
+	&quot;C_GYROSCOPEZ&quot;,
+	&quot;C_ACCELEROMETERX&quot;,
+	&quot;C_ACCELEROMETERY&quot;,
+	&quot;C_ACCELEROMETERZ&quot;,
+	&quot;C_LONGITUDE&quot;,
+	&quot;C_LATITUDE&quot;,
+	&quot;C_ALTITUDE&quot;,
+	&quot;C_DEVICE&quot;
+FROM &quot;SYSTEM&quot;.&quot;T_IOT_92DDB55E7B20E5CB01AC&quot;;
+
+var_res1 = SELECT 
+	iot.G_DEVICE as DEVICE_ID,
+	iot.G_CREATED as POSTED_TS,
+	iot.C_TIMESTAMP as SENSOR_CAPTURE_TS,
+	iot.C_AUDIO AS NOISE,
+	iot.C_GYROSCOPEX AS GYRO_X,
+	iot.C_GYROSCOPEY AS GYRO_Y,
+	iot.C_GYROSCOPEZ AS GYRO_Z,
+	iot.C_ACCELEROMETERX AS ACC_X,
+	iot.C_ACCELEROMETERY AS ACC_Y,
+	iot.C_ACCELEROMETERZ AS ACC_Z,
+	iot.C_LONGITUDE AS LONGITUDE,
+	iot.C_LATITUDE AS LATITUDE,
+	iot.C_ALTITUDE AS ALTITUDE,
+	iot.C_DEVICE AS IOTCLIENT,
+	wtr.&quot;city&quot; AS CITY,
+	wtr.&quot;humidity&quot; AS HUM,
+	wtr.&quot;pressure&quot; AS PRESSURE,
+	wtr.&quot;temp&quot; AS TEMPERATURE,
+	wtr.&quot;temp_max&quot; AS TEMP_MAX,
+	wtr.&quot;temp_min&quot; AS TEMP_MIN, 
+	wtr.&quot;conditionA&quot; AS COND_A,
+	wtr.&quot;conditionB&quot; AS COND_B,
+	wtr.&quot;captured_time&quot; AS WEATHR_CAPTURED_TIME
+	from :var_iot as iot inner join :var_weather as wtr 
+	on iot.G_CREATED = wtr.&quot;captured_time&quot;;
+	
+	var_aggr = select DEVICE_ID, 
+	                  POSTED_TS,
+	                  SENSOR_CAPTURE_TS,
+	                  CAST (NOISE AS DECIMAL) AS NOISE ,
+	                  CAST (GYRO_X AS DECIMAL) AS GYRO_X,  
+	                  CAST (GYRO_Y AS DECIMAL) AS GYRO_Y,
+	                  CAST (GYRO_Z AS DECIMAL) AS GYRO_Z, 
+	                  CAST (ACC_X AS DECIMAL) AS ACC_X ,
+	                  CAST (ACC_Y AS DECIMAL) AS ACC_Y ,
+	                  CAST (ACC_Z AS DECIMAL) AS ACC_Z , 
+	                  LONGITUDE,
+	                  LATITUDE,
+	                  ALTITUDE, 
+	                  IOTCLIENT,
+	                  CITY,
+	                  CAST (HUM AS DECIMAL) AS HUM,
+	                  CAST (PRESSURE AS DECIMAL) AS PRESSURE,
+	                  CAST (TEMPERATURE AS DECIMAL) AS TEMPERATURE,
+	                  CAST (TEMP_MAX AS DECIMAL) AS TEMP_MAX,
+	                  CAST (TEMP_MIN AS DECIMAL) AS TEMP_MIN,
+	                  COND_A,
+	                  COND_B,
+	                  WEATHR_CAPTURED_TIME,
+	                  20 AS SMOKING_PERC,
+	                  10 AS ALCOHOL_PERC
+	                  from :var_res1;
+	                  
+  var_calc = select DEVICE_ID,
+	                  POSTED_TS,
+	                  SENSOR_CAPTURE_TS,
+	                  SQRT ((GYRO_X*GYRO_X)+(GYRO_Y*GYRO_Y)+(GYRO_Z*GYRO_Z)) as GYRO,
+	                  SQRT ((ACC_X*ACC_X)+(ACC_Y*ACC_Y)+(ACC_Z*ACC_Z)) as ACC,
+	                  LONGITUDE,
+	                  LATITUDE,
+	                  ALTITUDE,
+	                  IOTCLIENT,
+	                  CITY,
+	                  CASE WHEN COND_A = 'Mist' OR COND_A = 'Rains'
+	                  THEN -20 
+	                  ELSE 0
+	                  END AS WTR_RESISTENCE,
+	                  CASE WHEN SMOKING_PERC  &gt; 19 
+	                  THEN -10 
+	                  ELSE 0
+	                  END AS SMOKE_NEG,
+	                  CASE WHEN ALCOHOL_PERC &lt; 10
+	                  THEN -5
+	                  ELSE 0
+	                  END AS ALCOHOL_NEG,
+	                  CASE WHEN NOISE &gt; 0.02
+	                  THEN -5 
+	                  ELSE 0
+	                  END AS NOISE_NEG,
+	                  HUM,
+	                  PRESSURE,
+	                  TEMPERATURE,
+	                  TEMP_MAX,
+	                  TEMP_MIN,
+	                  SMOKING_PERC,
+	                  ALCOHOL_PERC,
+	                  COND_A,
+	                  COND_B,
+	                  WEATHR_CAPTURED_TIME
+	                  from :var_aggr;
+	                  
+	   var_calc1 = select DEVICE_ID,
+	                      POSTED_TS,
+	                      SENSOR_CAPTURE_TS,
+	                      GYRO,
+	                      ACC,
+	                      CASE WHEN WTR_RESISTENCE = -20 AND ACC &gt;1
+	                     THEN -10
+	                     ELSE 0
+	                     END AS ACC_NEG,
+	                     LONGITUDE,
+	                     LATITUDE,
+	                     ALTITUDE,
+	                     IOTCLIENT,
+	                     CITY,
+	                     WTR_RESISTENCE,
+	                     SMOKE_NEG,
+	                     ALCOHOL_NEG,
+	                     NOISE_NEG,
+	                     HUM,
+	                     PRESSURE,
+	                     TEMPERATURE,
+	                     TEMP_MAX,
+	                     TEMP_MIN,
+	                     SMOKING_PERC,
+	                     ALCOHOL_PERC,
+	                     COND_A,
+	                     COND_B,
+	                     WEATHR_CAPTURED_TIME
+	                     from :var_calc;
+	                  
+	                  
+	                  
+	                  
+	                  
+	                  
+   var_out = select DEVICE_ID,
+	                      POSTED_TS,
+	                      SENSOR_CAPTURE_TS,
+	                      GYRO,
+	                      ACC,
+	                     ACC_NEG,
+	                     LONGITUDE,
+	                     LATITUDE,
+	                     ALTITUDE,
+	                     IOTCLIENT,
+	                     CITY,
+	                     WTR_RESISTENCE,
+	                     SMOKE_NEG,
+	                     ALCOHOL_NEG,
+	                     NOISE_NEG, 
+	                     HUM,
+	                     PRESSURE,
+	                     TEMPERATURE,
+	                     TEMP_MAX,
+	                     TEMP_MIN, 
+	                     SMOKING_PERC,
+	                     ALCOHOL_PERC,
+	                     COND_A,
+	                     COND_B,
+	                     WEATHR_CAPTURED_TIME,
+	                     (100+(ACC_NEG)+(SMOKE_NEG)+(ALCOHOL_NEG)+(NOISE_NEG)) AS DRIVER_SCORE from :var_calc1;
+	                     
+
+END /********* End Procedure Script ************/</definition>
+  </calculationView>
+</calculationViews>
+<logicalModel id="Script_View">
+  <attributes>
+    <attribute id="DEVICE_ID" key="true" order="1" semanticType="empty">
+      <descriptions defaultDescription="COL"/>
+      <keyMapping columnObjectName="Script_View" columnName="DEVICE_ID"/>
+    </attribute>
+    <attribute id="POSTED_TS" order="2">
+      <keyMapping columnObjectName="Script_View" columnName="POSTED_TS"/>
+    </attribute>
+    <attribute id="SENSOR_CAPTURE_TS" order="3">
+      <keyMapping columnObjectName="Script_View" columnName="SENSOR_CAPTURE_TS"/>
+    </attribute>
+    <attribute id="GYRO" order="4">
+      <keyMapping columnObjectName="Script_View" columnName="GYRO"/>
+    </attribute>
+    <attribute id="ACC" order="5">
+      <keyMapping columnObjectName="Script_View" columnName="ACC"/>
+    </attribute>
+    <attribute id="ACC_NEG" order="6">
+      <keyMapping columnObjectName="Script_View" columnName="ACC_NEG"/>
+    </attribute>
+    <attribute id="LONGITUDE" order="7">
+      <keyMapping columnObjectName="Script_View" columnName="LONGITUDE"/>
+    </attribute>
+    <attribute id="LATITUDE" order="8">
+      <keyMapping columnObjectName="Script_View" columnName="LATITUDE"/>
+    </attribute>
+    <attribute id="ALTITUDE" order="9">
+      <keyMapping columnObjectName="Script_View" columnName="ALTITUDE"/>
+    </attribute>
+    <attribute id="IOTCLIENT" order="10">
+      <keyMapping columnObjectName="Script_View" columnName="IOTCLIENT"/>
+    </attribute>
+    <attribute id="CITY" order="11">
+      <keyMapping columnObjectName="Script_View" columnName="CITY"/>
+    </attribute>
+    <attribute id="WTR_RESISTENCE" order="12">
+      <keyMapping columnObjectName="Script_View" columnName="WTR_RESISTENCE"/>
+    </attribute>
+    <attribute id="SMOKE_NEG" order="13">
+      <keyMapping columnObjectName="Script_View" columnName="SMOKE_NEG"/>
+    </attribute>
+    <attribute id="ALCOHOL_NEG" order="14">
+      <keyMapping columnObjectName="Script_View" columnName="ALCOHOL_NEG"/>
+    </attribute>
+    <attribute id="NOISE_NEG" order="15">
+      <keyMapping columnObjectName="Script_View" columnName="NOISE_NEG"/>
+    </attribute>
+    <attribute id="HUM" order="16">
+      <keyMapping columnObjectName="Script_View" columnName="HUM"/>
+    </attribute>
+    <attribute id="PRESSURE" order="17">
+      <keyMapping columnObjectName="Script_View" columnName="PRESSURE"/>
+    </attribute>
+    <attribute id="TEMPERATURE" order="18">
+      <keyMapping columnObjectName="Script_View" columnName="TEMPERATURE"/>
+    </attribute>
+    <attribute id="TEMP_MAX" order="19">
+      <keyMapping columnObjectName="Script_View" columnName="TEMP_MAX"/>
+    </attribute>
+    <attribute id="TEMP_MIN" order="20">
+      <keyMapping columnObjectName="Script_View" columnName="TEMP_MIN"/>
+    </attribute>
+    <attribute id="SMOKING_PERC" order="21">
+      <keyMapping columnObjectName="Script_View" columnName="SMOKING_PERC"/>
+    </attribute>
+    <attribute id="ALCOHOL_PERC" order="22">
+      <keyMapping columnObjectName="Script_View" columnName="ALCOHOL_PERC"/>
+    </attribute>
+    <attribute id="COND_A" order="23">
+      <keyMapping columnObjectName="Script_View" columnName="COND_A"/>
+    </attribute>
+    <attribute id="COND_B" order="24">
+      <keyMapping columnObjectName="Script_View" columnName="COND_B"/>
+    </attribute>
+    <attribute id="WEATHR_CAPTURED_TIME" order="25">
+      <keyMapping columnObjectName="Script_View" columnName="WEATHR_CAPTURED_TIME"/>
+    </attribute>
+    <attribute id="DRIVER_SCORE" order="26">
+      <keyMapping columnObjectName="Script_View" columnName="DRIVER_SCORE"/>
+    </attribute>
+  </attributes>
+  <calculatedAttributes/>
+  <baseMeasures/>
+  <calculatedMeasures/>
+  <restrictedMeasures/>
+</logicalModel>
+<layout>
+  <shapes>
+    <shape expanded="true" modelObjectName="Output" modelObjectNameSpace="MeasureGroup">
+      <upperLeftCorner x="40" y="85"/>
+    </shape>
+  </shapes>
+</layout>
+</Calculation:scenario>
